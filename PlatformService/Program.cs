@@ -4,8 +4,26 @@ using PlatformService.SyncDataServices.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var _configuration = builder.Configuration;
+var _enviroment = builder.Environment;
+
+if (_enviroment.IsProduction())
+    builder.Services.AddDbContext<AppDbContext>(opt =>
+    {
+        opt.UseSqlServer(_configuration.GetConnectionString("PlatformsConn"));
+    });
+else
+    builder.Services.AddDbContext<AppDbContext>(opt =>
+    {
+        opt.UseInMemoryDatabase("InMem");
+    });
+
 // Add services to the container.
-builder.Services.AddDbContext<AppDbContext>(opt => opt.UseInMemoryDatabase("InMem"));
+builder.Services.AddDbContext<AppDbContext>(opt =>
+{
+    opt.UseInMemoryDatabase("InMem");
+    opt.UseSqlServer(_configuration.GetConnectionString("PlatformsConn"));
+});
 builder.Services.AddScoped<IPlatformRepo, PlatformRepo>();
 builder.Services.AddHttpClient<ICommandDataClient, HttpCommandDataClient>();
 
@@ -24,8 +42,8 @@ Console.WriteLine($"Command Service Endpoint {app.Configuration["CommandService"
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-	app.UseSwagger();
-	app.UseSwaggerUI();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 //app.UseHttpsRedirection();
@@ -34,6 +52,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-PrepDb.PrepPopulation(app);
+PrepDb.PrepPopulation(app, _enviroment.IsProduction());
 
 app.Run();

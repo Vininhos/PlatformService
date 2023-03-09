@@ -11,7 +11,7 @@ namespace CommandsService.Data
             _context = context;
         }
 
-        public void createCommand(int platformId, Command command)
+        public void CreateCommand(int platformId, Command command)
         {
             if(command == null)
                 throw new ArgumentNullException(nameof(command));

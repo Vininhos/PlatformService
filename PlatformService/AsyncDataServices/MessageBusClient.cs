@@ -35,7 +35,7 @@ namespace PlatformService.AsyncDataServices
                 Console.WriteLine($"Could not connect to the Message Bus: {ex.Message}");
             }
         }
-        public void PublishNewPlatform(PlatformPublishDto platformPublishDto)
+        public void PublishNewPlatform(PlatformPublishedDto platformPublishDto)
         {
             var message = JsonSerializer.Serialize(platformPublishDto);
 
@@ -51,9 +51,24 @@ namespace PlatformService.AsyncDataServices
         private void SendMessage(string message)
         {
             var body = Encoding.UTF8.GetBytes(message);
+
+            _channel.BasicPublish(exchange: "trigger", routingKey: "", null, body: body);
+
+            Console.WriteLine($"We have sent {message}");
         }
 
-        private void RabbitMQ_ConnectionShutdown(object sender, ShutdownEventArgs e) {
+        public void Dispose()
+        {
+            Console.WriteLine("MessageBus disposed");
+            if (_channel.IsOpen)
+            {
+                _channel.Close();
+                _connection.Close();
+            }
+        }
+
+        private void RabbitMQ_ConnectionShutdown(object sender, ShutdownEventArgs e)
+        {
             Console.WriteLine("RabbitMQ Connection Shutdown");
         }
     }
